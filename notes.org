@@ -1,0 +1,41 @@
+* CIS 194 - Week 6 - Laziness
+** It has been mentioned previously that haskell is lazy and that has been hand waved off.
+** Being lazy forces a different coding style and gives rise to some very interesting abstractions.
+** One of the most confronting, weird and wonderful parts of haskell! Lets jump in!
+* But first: What is strict evaluation?
+** Function arguments are completely evaluated before passing them to a function.
+** This can lead to waste, since arguments are evaluated whether they are needed or not.
+** Does mean that evaluation order can be easily predicted, which is especially useful with sideeffects.
+** If side-effecting arguments can't be guaranteed to be evaluated in order (or even evaluated at all), non-strictness can get confusing really quickly!!
+** So why would we even submit ourselves to this pain?!?
+* Side Effects and Purity
+** Dependency on time  
+** Sidebar: Referential Transparency  
+** Laziness and non-referentially transparent code do not mix.
+** There are of course some side effects. More on the IO monad later.   
+* Lazy Evaluation
+** Thunks
+** Any thunks that turned out to be not needed get thrown away.  
+* Pattern matching drives evalutation
+** Evaluation is dependent on whether code needs to destructure its value and interrogate the shape.
+** Just evaluates enough to destructure what it needs. Sub expressions can remain unevaluated: WHNF   
+** GHC does graph reduction so you can get some awesome optimisations on repeated sub expressions.
+* Consequences
+** Purity
+** Understanding space usage
+** Exceptions (!)
+** Short Circuting Operators
+** User defined control structures
+** Infinite data structures
+** Pipelining / wholemeal programming
+*** Can write very high level things that at face value look very inefficient
+*** minlist = headMay . sort   
+*** Strict languages have things like iterators/generators/streams to mimic this but you have to plan ahead for it and switch your coding style to make it happen.
+*** Also, then as soon as you introduce lazy concepts into a strict language you have to be *very* careful with the code you compose with the lazy structures.      
+** Dynamic Programming
+* Homework Tips    
+* Sources
+** [[http://www.cis.upenn.edu/~cis194/lectures/06-laziness.html][Lecture Notes]]
+** [[http://research.microsoft.com/en-us/um/people/simonpj/papers/haskell-retrospective/HaskellRetrospective.pdf][Wearing the hair shirt: A retrospective on Haskell]]
+** [[http://www.updike.org/articles/Pure_Lazy_Functional][Haskell: Pure and Lazy, yet Functional]]
+** [[http://book.realworldhaskell.org/read/concurrent-and-multicore-programming.html#id675076][Real World Haskell - Chapter 24 - Parallel Programming in Haskell]]

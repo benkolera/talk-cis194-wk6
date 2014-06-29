@@ -1,10 +1,11 @@
-This material has been adapted from Brent Yorgey's excellent CIS194 course
-taught at the University of Pennsylvania.
-  
-The Brisbane Functional Programming Group has been granted permission by Brent
-to reuse the material for non-for-profit training purposes, but otherwise has no
-rights over the content. If you plan to use this material for anything other
-than personal education, please ask Brent for permission first.
+This presentation is licensed under the Creative Commons Attribution 3.0 License:
+  https://creativecommons.org/licenses/by/3.0/
 
-The original source material can be found here:
-http://www.cis.upenn.edu/~cis194/lectures/06-laziness.html
+Portions of the lecture are by Brent Yorgey:
+  http://www.cis.upenn.edu/~byorgey/
+from his lecture course:
+  http://www.seas.upenn.edu/~cis194/
+which is also under a Creative Commons Attribution license.
+
+All CSS, Javascript and image assets are from the reveal.js project. Please see
+reveal.js.LICENSE for the accompanying copyright and usage permission notice.
