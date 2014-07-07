@@ -15,11 +15,11 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 		<link rel="stylesheet" href="css/reveal.min.css">
-		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+		<link rel="stylesheet" href="css/theme/sky.css" id="theme">
+		<link rel="stylesheet" href="css/bens.css">
 
 		<!-- For syntax highlighting -->
-		<link rel="stylesheet" href="lib/css/zenburn.css">
-
+    <link rel="stylesheet" href="lib/css/mono-blue.css">
 		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
 		<script>
 			if( window.location.search.match( /print-pdf/gi ) ) {
@@ -43,16 +43,49 @@
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 				<section>
-					<h1>Introduction to Haskell</h1>
+					<h1>Intro to Haskell</h1>
 					<h3>Week 6 - Laziness</h3>
 					<p>
 						<small>Created by <a href="http://twitter.com/benkolera">@benkolera</a> for the July 2014 BPFG.</small>
 					</p>
           <aside class="notes">
-            Hello World!
+            <p>Hello everyone and welcome to week 6 of Introduction to Haskell.</p>
+            <p>This week we finally demystify one of the most interesting (and sometimes confronting) aspects of haskell; its pervasive laziness.</p>
+            <p>Laziness gives rise to some interesting abstractions but is not without its tradeoffs; all of which I'm excited to explore them with you this evening.</p>
           </aside>
 				</section>
-
+        <section>
+          <section>
+            <h1>Strict Evaluation</h1>
+            <aside class="notes">
+              <p>But before we talk about lazy evaluation, we should really talk about what its opposite is, Strict Evaluation.</p>
+            </aside>
+          </section>
+          <section>
+            <h2>Strict Evaluation</h2>
+            <pre><code data-trim class="hs">
+f x y = x + 2
+            </code></pre>
+            <p>To evaluate f, all arguments are fully evaluated before being passed into the function.</p>
+            <pre class="fragment"><code data-trim class="hs">
+-- f 5 (reallyReallyRidiculouslyExpensiveFunction 10)
+-- f 5 42                                           
+-- 5 + 2 (evaluate function body)
+-- 7
+            </code></pre>
+            <p class="fragment">
+              Even though y is not used, we still need to pay a really really ridiculously large cost to evaluate it.
+            </p>
+          </section>
+          <section>
+            <h2>Why is Strict the norm?</h2>
+            <p>Easy to predict evaluation order. Consider this code:</p>
+            <pre><code data-trim class="scala">
+f(releaseMonkey(),incrementCounter())
+            </code></pre>
+            <p>We know that a monkey will be released and then the counter incremented regardless of what f does.</p>
+          </section>
+        </section>
 				<section>
 					<h1>THE END</h1>
 				</section>
@@ -73,6 +106,8 @@
 				progress: true,
 				history: true,
 				center: true,
+        width: 1024,
+        height: 768,
 
 				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
 				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
