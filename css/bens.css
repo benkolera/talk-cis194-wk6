@@ -1,3 +1,13 @@
-h2 {
+.reveal h2 {
   margin-bottom: 30px;
+}
+
+.reveal pre , .reveal p {
+  margin-bottom: 20px;
+}
+
+.repeat-eg-steps {
+  top: 300px;
+  left: 50px;
+  position: absolute !important;
 }

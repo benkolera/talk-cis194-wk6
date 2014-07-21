@@ -19,7 +19,7 @@
 		<link rel="stylesheet" href="css/bens.css">
 
 		<!-- For syntax highlighting -->
-    <link rel="stylesheet" href="lib/css/mono-blue.css">
+    <link rel="stylesheet" href="lib/css/github.css">
 		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
 		<script>
 			if( window.location.search.match( /print-pdf/gi ) ) {
@@ -56,36 +56,189 @@
 				</section>
         <section>
           <section>
-            <h1>Strict Evaluation</h1>
+            <h1>Strict<br />Evaluation</h1>
             <aside class="notes">
               <p>But before we talk about lazy evaluation, we should really talk about what its opposite is, Strict Evaluation.</p>
             </aside>
           </section>
           <section>
             <h2>Strict Evaluation</h2>
+            <br /> 
             <pre><code data-trim class="hs">
 f x y = x + 2
             </code></pre>
+            <br />
             <p>To evaluate f, all arguments are fully evaluated before being passed into the function.</p>
+            <br /> 
             <pre class="fragment"><code data-trim class="hs">
--- f 5 (reallyReallyRidiculouslyExpensiveFunction 10)
--- f 5 42                                           
--- 5 + 2 (evaluate function body)
--- 7
+f 5 (reallyReallyRidiculouslyExpensiveFunction 10)
+f 5 42  -- Pay the expensive cost of calculating the second expression                                         
+5 + 2   -- (evaluate function body)
+7
             </code></pre>
-            <p class="fragment">
-              Even though y is not used, we still need to pay a really really ridiculously large cost to evaluate it.
-            </p>
+            <aside class="notes">
+              <p>All arguments of a function are evaluated before the body is evaluated</p>
+              <p>Because they are evaluated before the body, they must be evaluated regardless of whether they are used.</p>
+            </aside>
           </section>
           <section>
-            <h2>Why is Strict the norm?</h2>
+            <h2>Why Strict Evaluation?</h2>
             <p>Easy to predict evaluation order. Consider this code:</p>
             <pre><code data-trim class="scala">
 f(releaseMonkey(),incrementCounter())
             </code></pre>
-            <p>We know that a monkey will be released and then the counter incremented regardless of what f does.</p>
+            <p>The effects will happen left-to-right regardless of f.</p>
+            <p>It would make it very difficult to reason about this code if evaluation order was not easily predictable.</p>
+            <aside class="notes">
+              <p>The power of strict evaluation is the simplicity of predicting what order things are run in.</p>
+              <p>Consider this code, and how in traditional languages you can easily reason the fact that we'll always release a monkey and increment a count in precisely that order.</p>
+              <p>If the two arguments could get evaluated in any order (or not at all) based on what f does, it would make java more difficult than it already is. :)</p>
+            </aside>
           </section>
         </section>
+        <section>
+          <section>
+            <h1>Side Effects <br />& Purity</h1>
+            <aside class="notes">
+              <p>What we are really talking about are the presence/absence of side-effects.</p>
+            </aside>
+          </section>
+          <section>
+            <h2>Side Effects</h2>
+            <p>Time dependent operations require an easily predictable evaluation order. Examples are:</p>
+            <ul>
+              <li class="fragment">Reading/Modifying a shared variable</li>   
+              <li class="fragment">Printing to the screen</li>   
+              <li class="fragment">Reading from a file or network</li>
+            </ul>
+            <aside class="notes">
+              <p>
+                Any operation that can return something different depending on when it is called obviously needs to be evaluated in a predictable order.
+              </p>
+              <p>Reading/Modifying a shared variable can change outputs as the value changes.</p>
+              <p>Printing to the screen may need to be done in a certain order to make sense.</p>
+              <p>Network and file IO share the same problem as shared variables and the screen combined.</p>
+            </aside>
+          </section>
+          <section>
+            <h2>Laziness forces Purity</h2>
+            <p>Haskell was designed to be lazy.</p>
+            <p>Quickly became apparent that haskell needed to enforce purity / disallow side effects.</p>
+          </section>
+          <section>
+            <h2>But we need side effects!</h2>
+            <p>Don't worry; Haskell does has them.</p>
+            <p>Are just separated into a DSL that forces sequential evaluation.</p>
+            <p>We separate our code into sequential bits and pure bits, keeping laziness and purity where it is useful.</p>
+            <p>More on <a target="_blank" href="http://www.haskell.org/haskellwiki/IO_inside">IO</a> in later lectures!</p>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h1>Lazy Evaluation</h1>
+            <p>(Mostly the opposite of Strict evaluation, but <a target="_blank" href="http://www.haskell.org/haskellwiki/Lazy_vs._non-strict">not entirely</a>)</p>
+            <aside class="notes">
+              <p>Lazy Evalutation is, for our purposes, the opposite of strict evaluation.</p>
+              <p>Involves delaying the evaluation of expressions as long as possible.</p>
+            </aside>
+          </section> 
+          <section>
+            <h2>Thunks</h2>
+            <p>Expressions are not evaluated and are instead passed around as unevaluated computations called
+              <a target="_blank" href="http://www.haskell.org/haskellwiki/Thunk">thunks</a>.</p>
+            <pre class="fragment"><code data-trim class="hs">
+f x y = x + 2
+f 5 (reallyReallyRidiculouslyExpensiveFunction 10)
+f 5 {thunk} -- Expensive function is wrapped in a thunk
+5 + 2       -- Thunk can be garbage collected and never evaluated
+            </code></pre>
+            <aside class="notes">
+              <p>Expressions are not evaluated immediately and are instead passed around as unevaluated thunks.</p>
+              <p>Take our previous code example.</p>
+              <p>The expensive function starts its life as a thunk and ends up garbage collected without doing any work.</p>
+            </aside>
+          </section>
+          <section>
+            <h2>Pattern Matching drives Evaluation</h2>
+            <p>Consider the differences between these two functions:</p>
+            <pre><code data-trim class="haskell">
+f1 :: Maybe a -> [Maybe a]
+f1 m = [m,m]    
+
+f2 :: Maybe a -> a
+f2 Nothing  = []
+f2 (Just x) = x    
+            </code></pre>
+            <p>f1 does not inspect the shape of m, so it is left as a thunk.</p>
+            <p>While f2 needs to evaluate the maybe, x is left unevaluated.</p>
+            <aside class="notes">
+              <p>F1 does not inspect the shape of the maybe, so m is left unevaluated.</p>
+              <p>Aside: It is for this reason that f1 would be written with a type of a -> [a]</p>
+              <p>x is not patterned matched and will only be evaluated if the result is pattern matched elsewhere</p>
+            </aside>
+          </section>
+          <section>
+            <h2>Key Points</h2>
+            <p>Expressions are only evaluated when pattern matched.</p>
+            <p>... and are only evaluated as much as the pattern needs.</p>
+          </section>
+          <section>
+            <h2>Example</h2>
+            <pre><code data-trim class="haskell">
+repeat :: a -> [a]
+repeat x = x : repeat x
+
+take :: Int -> [a] -> [a]
+take n _      | n <= 0 = []
+take n []              = []
+take n (x:xs)          = x : take (n - 1) xs
+            </code></pre>
+            
+            <pre class="repeat-eg-steps fragment current-visible"><code>
+  take 3 (repeat 7)
+      { 3 <= 0 is False, so we proceed to the second clause, which
+    needs to match on the second argument. So we must expand
+    repeat 7 one step. }
+            </code></pre> 
+            <pre class="repeat-eg-steps fragment current-visible"><code>
+= take 3 (7 : repeat 7)
+      { the second clause does not match but the third clause
+        does. Note that (3-1) does not get evaluated yet! }
+            </code></pre> 
+            <pre class="repeat-eg-steps fragment current-visible"><code>
+= 7 : take (3-1) (repeat 7)
+      { In order to decide on the first clause, we must test (3-1)
+        <= 0 which requires evaluating (3-1). }
+            </code></pre> 
+            <pre class="repeat-eg-steps fragment current-visible"><code>
+= 7 : take 2 (repeat 7)
+      { 2 <= 0 is False, so we must expand repeat 7 again. }
+            </code></pre> 
+            <pre class="repeat-eg-steps fragment current-visible"><code>
+= 7 : take 2 (7 : repeat 7)
+      { The rest is similar. }
+            </code></pre> 
+            <pre class="repeat-eg-steps fragment current-visible"><code>
+= 7 : 7 : take (2-1) (repeat 7)
+            </code></pre> 
+            <pre class="repeat-eg-steps fragment current-visible"><code>
+= 7 : 7 : take 1 (repeat 7)
+            </code></pre> 
+            <pre class="repeat-eg-steps fragment current-visible"><code>
+= 7 : 7 : take 1 (7 : repeat 7)
+            </code></pre> 
+            <pre class="repeat-eg-steps fragment current-visible"><code>
+= 7 : 7 : 7 : take (1-1) (repeat 7)
+            </code></pre> 
+            <pre class="repeat-eg-steps fragment current-visible"><code>
+= 7 : 7 : 7 : take 0 (repeat 7)
+            </code></pre> 
+            <pre class="repeat-eg-steps fragment current-visible"><code>
+= 7 : 7 : 7 : []
+            </code></pre> 
+          </section>
+        </section>
+          
 				<section>
 					<h1>THE END</h1>
 				</section>
