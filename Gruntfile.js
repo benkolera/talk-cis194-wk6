@@ -49,29 +49,6 @@ module.exports = function(grunt) {
 			}
 		},
 
-		jshint: {
-			options: {
-				curly: false,
-				eqeqeq: true,
-				immed: true,
-				latedef: true,
-				newcap: true,
-				noarg: true,
-				sub: true,
-				undef: true,
-				eqnull: true,
-				browser: true,
-				expr: true,
-				globals: {
-					head: false,
-					module: false,
-					console: false,
-					unescape: false
-				}
-			},
-			files: [ 'Gruntfile.js', 'js/reveal.js' ]
-		},
-
 		connect: {
 			server: {
 				options: {
@@ -94,7 +71,7 @@ module.exports = function(grunt) {
 		},
 
 		watch: {
-      options: {
+			options: {
  				livereload: true,
  			},  
 			main: {
@@ -105,7 +82,7 @@ module.exports = function(grunt) {
 				files: [ 'css/theme/source/*.scss', 'css/theme/template/*.scss' ],
 				tasks: 'themes'
 			},
-      content: {
+			content: {
  				files: [ 'index.html' ],
  				tasks: []
  			}
@@ -114,7 +91,6 @@ module.exports = function(grunt) {
 	});
 
 	// Dependencies
-	grunt.loadNpmTasks( 'grunt-contrib-jshint' );
 	grunt.loadNpmTasks( 'grunt-contrib-cssmin' );
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-contrib-watch' );
@@ -123,7 +99,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-zip' );
 
 	// Default task
-	grunt.registerTask( 'default', [ 'jshint', 'cssmin', 'uglify'] );
+	grunt.registerTask( 'default', [ 'cssmin', 'uglify'] );
 
 	// Theme task
 	grunt.registerTask( 'themes', [ 'sass' ] );
