@@ -237,16 +237,214 @@ take n (x:xs)          = x : take (n - 1) xs
 = 7 : 7 : 7 : []
             </code></pre> 
           </section>
+          <section>
+            <h2>Graph Reduction</h2>
+            <p>GHC Doesn't do things exactly how we just stepped through things.</p>
+            <p>Treats computation as a graph to reduce evaluations of sub expressions.</p>
+            <p>This optimisation is called <a target="_blank" href="http://en.wikibooks.org/wiki/Haskell/Graph_reduction">graph reduction</a>.</p>
+          </section>
         </section>
-          
+        <section>
+          <section>
+            <h2>Consequences</h2>
+            <aside class="notes">
+              <p>Laziness has some interesting, pervasive and non-obvious consequences. Lets explore a few of them.</p>
+            </aside>
+          </section>
+        </section>
+        <section> 
+          <section>
+            <h2>Purity</h2>
+            <p>Laziness enforces purity.</p>
+            <p>SPJ once talked about this being the most important consequence in <a target="_blank" href="http://research.microsoft.com/en-us/um/people/simonpj/papers/haskell-retrospective/HaskellRetrospective.pdf">his haskell retrospective (1990)</a>.</p>
+            <p>Purity has lots of wonderful benefits of producing safely composable code.</p>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h2>Understanding<br />Space Usage</h2>
+          </section>
+          <section>
+            <h2>foldl</h2>
+            <p>Consider this function from the std lib:</p>
+            <pre><code class="haskell">
+-- Standard library function foldl, provided for reference
+foldl :: (b -> a -> b) -> b -> [a] -> b
+foldl _ z []     = z
+foldl f z (x:xs) = foldl f (f z x) xs
+            </code></pre> 
+            <pre class="foldl-eg-steps fragment current-visible"><code>
+  foldl (+) 0 [1,2,3]
+            </code></pre> 
+            <pre class="foldl-eg-steps fragment current-visible"><code>
+= foldl (+) (0+1) [2,3]
+            </code></pre> 
+            <pre class="foldl-eg-steps fragment current-visible"><code>
+= foldl (+) ((0+1)+2) [3]
+            </code></pre> 
+            <pre class="foldl-eg-steps fragment current-visible"><code>
+= foldl (+) (((0+1)+2)+3) []
+            </code></pre> 
+            <pre class="foldl-eg-steps fragment current-visible"><code>
+= (((0+1)+2)+3)
+            </code></pre> 
+            <aside class="notes">
+              <p>Since the accumulator value is never pattern matched, we just build up a big old thunk that is as long as the list is.</p>
+              <p>This is okay for a small list, but for a big list it wastes a lot of memory. Summing 1 to 1 billion consumes all 8GB of my memory and never terminates.</p>
+            </aside>
+          </section> 
+          <section>
+            <h2>Adding Strictness</h2>
+            <p>Data.List.foldl' (from base) is strict on the accumulator:</p>
+            <pre class="foldl-strict-eg-steps fragment current-visible"><code>
+  foldl' (+) 0 [1,2,3]
+            </code></pre> 
+            <pre class="foldl-strict-eg-steps fragment current-visible"><code>
+= foldl' (+) (0+1) [2,3]
+            </code></pre> 
+            <pre class="foldl-strict-eg-steps fragment current-visible"><code>
+= foldl' (+) 1 [2,3]
+            </code></pre> 
+            <pre class="foldl-strict-eg-steps fragment current-visible"><code>
+= foldl' (+) (1+2) [3]
+            </code></pre> 
+            <pre class="foldl-strict-eg-steps fragment current-visible"><code>
+= foldl' (+) 3 [3]
+            </code></pre> 
+            <pre class="foldl-strict-eg-steps fragment current-visible"><code>
+= foldl' (+) (3+3) []
+            </code></pre> 
+            <pre class="foldl-strict-eg-steps fragment current-visible"><code>
+= foldl' (+) 6 []
+            </code></pre> 
+            <pre class="foldl-strict-eg-steps fragment current-visible"><code>
+= 6
+            </code></pre> 
+            <p class="fragment">For more information on how this is possible, read about <a target="_blank" href="http://www.haskell.org/haskellwiki/Seq">seq</a>.</p>
+          </section>
+        </section> 
+        <section>
+          <section>
+            <h2>Short Circuiting Operators</h2>
+            <aside class="notes">
+              <p>Most strict languages have laziness baked into their boolean operators.</p>
+              <p>For instance, && returns true as soon as expression returns false.</p>
+            </aside>
+          </section>
+          <section>
+            <h2>Defining && in haskell</h2>
+            <p>Defining && is really boring and requires no special cases:</p>
+            <pre><code class="haskell">
+(&&) :: Bool -> Bool -> Bool
+True  && x  = x
+False && _  = False
+            </code></pre>
+            <p>Note that we never pattern match on the second arg and return False as soon as we hit False</p>
+            <p>This is more or less equivalent to Java</p>
+          </section>
+          <section>
+            <h2>&&, the wrong way</h2>
+            <pre><code class="haskell">
+(&&!) :: Bool -> Bool -> Bool
+True  &&! True  = True
+True  &&! False = False
+False &&! True  = False
+False &&! False = False
+            </code></pre>
+            <p class="fragment" data-fragment-index="0">This pattern matches on both arguments, which will explode if you do something like:</p>
+            <pre class="fragment" data-fragment-index="0"><code class="haskell">
+False &&  (head [] == 'x')  -- False 
+False &&! (head [] == 'x')  -- Exception! :(
+            </code></pre>
+            <aside class="notes">
+              <p>We could have defined && this way which doesn't how we'd expect.</p>
+              <p>This will always evaluate the second argument even if we hit False.</p>
+              <p>There are some interesting tradeoffs and decisions to make when defining a haskell function!</p> 
+            </aside>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h2>User defined Control Structures</h2>
+            <aside class="notes">
+              <p>Most languages have special control structures for if/try catch/etc that have some lazy short circuiting behaviour.</p>
+              <p>In haskell there is again no need for special language cases.</p>
+            </aside>
+          </section>
+          <section>
+            <h2>Defining if in haskell</h2>
+            <pre><code class="haskell"> 
+if' :: Bool -> a -> a -> a
+if' True  x _ = x
+if' False _ y = y
+            </code></pre>
+            <p>Haskell has if then else syntax, but it is largely unnecessary.</p>
+            <p>Most time you'll use pattern matching or guards.</p>
+            <p>More control structures later when we talk about IO.</p>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h2>Infinite Data Structures</h2>
+            <p>Writing and dealing with infinite structures is very elegant. Consider:</p>
+            <pre><code data-trim class="haskell">
+repeat :: a -> [a]
+repeat x = x : repeat x
+            </code></pre>
+            <p>Only the bits that the user needs are evaluated:</p>
+            <pre><code class="haskell">take 5 (repeat 'a')) -- => "aaaaa"</code></pre>
+            <p>This is not easy to do in a strict language (usually involved some kind of iterator / generator).</p>
+          </section>
+          <section>
+            <h2>Effectively Infinite Structures</h2>
+            <p>Laziness is also quite useful for very large problem spaces, like all moves in a chess game.</p>
+            <p>Can define a function that generates a thunk for the entire problem space without costing space/time.</p>
+            <p>Moves are just pulled off as they are needed by the consumer.</p>
+            <p>Separating generation and consumption leads to very modular code.</p>
+          </section>
+        </section>
+        <section>
+          <h2>Dynamic Programming</h2>
+            <pre class="fragment"><code data-trim class="haskell">
+knapsack01 :: [Double] -> [Integer] -> Integer -> Double     
+-- values  -> nonnegative weights -> knapsack size -> max possible value 
+knapsack01 vs ws maxW = m!(numItems-1, maxW)
+  where numItems = length vs
+        m = array ((-1,0), (numItems-1, maxW)) $
+              [((-1,w), 0) | w <- [0 .. maxW]] ++
+              [((i,0), 0)  | i <- [0 .. numItems-1]] ++
+              [((i,w), best) 
+                  | i <- [0 .. numItems-1]
+                  , w <- [1 .. maxW]
+                  , let best
+                          | ws!!i > w  = m!(i-1, w)
+                          | otherwise  = max (m!(i-1, w)) 
+                                             (m!(i-1, w - ws!!i) + vs!!i)
+              ]
+example = knapsack01 [3,4,5,8,10] [2,3,4,5,9] 20
+            </code></pre>
+            <p class="fragment">No time to go into this in depth. Further reading: <a target="_blank" href="http://en.wikipedia.org/wiki/Knapsack_problem">here</a></p>
+            <aside class="notes">
+              <p>One of the coolest things about laziness is non-nonsense dynamic programming.</p>
+              <p>You normally need to be very careful to fill in entries of the table in the right order.</p>
+              <p>Whereas with laziness you can just define things recursively and the table is generated as needed.</p>
+              <p>We don't have time to go into this in depth.</p>
+            </aside>
+        </section>
+        <section>
+          <h2>Wrap Up</h2>
+          <p class="fragment">Laziness keeps us honest with our side effects.</p>
+          <p class="fragment">There are some (at times painful) difficulties reasoning about space usage.</p>
+          <p class="fragment">But in turn we gain some really interesting and powerful abstractions without special cases.</p>
+          <p class="fragment">Seems like a better default to have purity and safe laziness by design rather than potentially buggy and opaque laziness (ala scala,python)</p>
+        </section>
 				<section>
 					<h1>THE END</h1>
+          <p>This lecture has been derived from Brent Yorgey's excellent <br /><a target="_blank" href="http://www.cis.upenn.edu/~cis194/lectures/06-laziness.html">CIS 194 lecture series</a>.</p>
+          <p>All material in this talk is released under a <br /><a target="_blank" href="https://creativecommons.org/licenses/by/3.0/">creative commons with attribution license 3.0.</a></p>
 				</section>
-
 			</div>
-
 		</div>
-
 		<script src="lib/js/head.min.js"></script>
 		<script src="js/reveal.min.js"></script>
 
