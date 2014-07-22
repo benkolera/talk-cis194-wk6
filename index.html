@@ -78,7 +78,7 @@ f 5 42  -- Pay the expensive cost of calculating the second expression
             </code></pre>
             <aside class="notes">
               <p>All arguments of a function are evaluated before the body is evaluated</p>
-              <p>Because they are evaluated before the body, they must be evaluated regardless of whether they are used.</p>
+              <p><[click] Because they are evaluated before the body, they must be evaluated regardless of whether they are used.</p>
             </aside>
           </section>
           <section>
@@ -115,9 +115,9 @@ f(releaseMonkey(),incrementCounter())
               <p>
                 Any operation that can return something different depending on when it is called obviously needs to be evaluated in a predictable order.
               </p>
-              <p>Reading/Modifying a shared variable can change outputs as the value changes.</p>
-              <p>Printing to the screen may need to be done in a certain order to make sense.</p>
-              <p>Network and file IO share the same problem as shared variables and the screen combined.</p>
+              <p>[click] Reading/Modifying a shared variable can change outputs as the value changes.</p>
+              <p>[click] Printing to the screen may need to be done in a certain order to make sense.</p>
+              <p>[click] Network and file IO share the same problem as shared variables and the screen combined.</p>
             </aside>
           </section>
           <section>
@@ -154,7 +154,7 @@ f 5 {thunk} -- Expensive function is wrapped in a thunk
             </code></pre>
             <aside class="notes">
               <p>Expressions are not evaluated immediately and are instead passed around as unevaluated thunks.</p>
-              <p>Take our previous code example.</p>
+              <p>[click] Take our previous code example.</p>
               <p>The expensive function starts its life as a thunk and ends up garbage collected without doing any work.</p>
             </aside>
           </section>
@@ -263,6 +263,9 @@ take n (x:xs)          = x : take (n - 1) xs
         <section>
           <section>
             <h2>Understanding<br />Space Usage</h2>
+            <aside class="notes">
+              <p>Laziness is not entirely magical. There are some non trivial challenges (especially for newcomers) with reasoning about space usage.</p>
+            </aside>
           </section>
           <section>
             <h2>foldl</h2>
@@ -358,7 +361,7 @@ False &&! (head [] == 'x')  -- Exception! :(
             </code></pre>
             <aside class="notes">
               <p>We could have defined && this way which doesn't how we'd expect.</p>
-              <p>This will always evaluate the second argument even if we hit False.</p>
+              <p>[click] This will always evaluate the second argument even if we hit False.</p>
               <p>There are some interesting tradeoffs and decisions to make when defining a haskell function!</p> 
             </aside>
           </section>
